@@ -37884,7 +37884,7 @@ var $async$n7=A.J(function(a0,a1){if(a0===1){o.push(a1)
 s=p}for(;;)switch(s){case 0:if(m.e==null){s=1
 break}m.aj(new A.a9o(m))
 p=4
-l=A.auk("POST",A.fR("http://127.0.0.1:5000/remove-bg"))
+l=A.auk("POST",A.fR("https://bg-remover-pro.onrender.com/remove-bg"))
 s=7
 return A.I(m.e.Ci(),$async$n7)
 case 7:k=a1

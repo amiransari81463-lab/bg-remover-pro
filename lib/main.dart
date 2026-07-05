@@ -54,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final request = http.MultipartRequest(
         "POST",
-        Uri.parse("http://127.0.0.1:5000/remove-bg"),
+        Uri.parse("https://bg-remover-pro.onrender.com/remove-bg"),
       );
 
       final imageBytes = await selectedImage!.readAsBytes();
