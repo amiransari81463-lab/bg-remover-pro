@@ -24,7 +24,6 @@ class BGRemoverPro extends StatelessWidget {
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -33,7 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
   final ImagePicker _picker = ImagePicker();
 
   XFile? selectedImage;
+  XFile? backgroundImage;
   Uint8List? removedImageBytes;
+  Color selectedColor = Colors.white;
   bool isLoading = false;
 
   Future<void> pickImage() async {
@@ -46,9 +47,15 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> pickBackgroundImage() async {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() => backgroundImage = image);
+    }
+  }
+
   Future<void> removeBackground() async {
     if (selectedImage == null) return;
-
     setState(() => isLoading = true);
 
     try {
@@ -58,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       final imageBytes = await selectedImage!.readAsBytes();
-
       request.files.add(
         http.MultipartFile.fromBytes(
           "image",
@@ -71,9 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final bytes = await response.stream.toBytes();
 
       if (response.statusCode == 200) {
-        setState(() {
-          removedImageBytes = bytes;
-        });
+        setState(() => removedImageBytes = bytes);
       } else {
         throw Exception("Background removal failed");
       }
@@ -99,6 +103,40 @@ class _HomeScreenState extends State<HomeScreen> {
     html.Url.revokeObjectUrl(url);
   }
 
+  Widget previewBox() {
+    if (removedImageBytes != null) {
+      return Container(
+        height: 360,
+        width: 360,
+        decoration: BoxDecoration(
+          color: selectedColor,
+          borderRadius: BorderRadius.circular(18),
+          image: backgroundImage == null
+              ? null
+              : DecorationImage(
+                  image: NetworkImage(backgroundImage!.path),
+                  fit: BoxFit.cover,
+                ),
+        ),
+        child: Image.memory(
+          removedImageBytes!,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+
+    if (selectedImage != null) {
+      return Image.network(
+        selectedImage!.path,
+        height: 360,
+        width: 360,
+        fit: BoxFit.contain,
+      );
+    }
+
+    return const Text("No Image Selected");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,46 +144,65 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(title: const Text("BG Remover Pro"), centerTitle: true),
       body: Center(
         child: Card(
-          elevation: 6,
+          elevation: 8,
           margin: const EdgeInsets.all(24),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(18),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.auto_fix_high, size: 60),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   const Text(
                     "Remove Background Instantly",
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Upload photo, remove background, add custom background and download PNG.",
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 18),
 
-                  if (removedImageBytes != null)
-                    Image.memory(
-                      removedImageBytes!,
-                      height: 350,
-                      width: 350,
-                      fit: BoxFit.contain,
-                    )
-                  else if (selectedImage != null)
-                    Image.network(
-                      selectedImage!.path,
-                      height: 350,
-                      width: 350,
-                      fit: BoxFit.contain,
-                    )
-                  else
-                    const Text("No Image Selected"),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(18),
+                    child: previewBox(),
+                  ),
 
                   const SizedBox(height: 22),
 
-                  FilledButton.icon(
-                    onPressed: pickImage,
-                    icon: const Icon(Icons.upload_file),
-                    label: const Text("Choose Image"),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: pickImage,
+                        icon: const Icon(Icons.upload_file),
+                        label: const Text("Choose Image"),
+                      ),
+                      FilledButton.icon(
+                        onPressed: pickBackgroundImage,
+                        icon: const Icon(Icons.image),
+                        label: const Text("Upload BG"),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () {
+                          setState(() => selectedColor = Colors.white);
+                        },
+                        icon: const Icon(Icons.format_color_fill),
+                        label: const Text("White BG"),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () {
+                          setState(() => selectedColor = Colors.lightBlue);
+                        },
+                        icon: const Icon(Icons.color_lens),
+                        label: const Text("Blue BG"),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 12),
