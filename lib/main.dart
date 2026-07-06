@@ -3,6 +3,7 @@ import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 void main() {
   runApp(const BGRemoverPro());
@@ -16,10 +17,7 @@ class BGRemoverPro extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'BG Remover Pro',
-      theme: ThemeData(
-        colorSchemeSeed: Colors.deepPurple,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(colorSchemeSeed: Colors.deepPurple, useMaterial3: true),
       home: const HomeScreen(),
     );
   }
@@ -76,6 +74,40 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundImage = null;
       isTransparent = true;
     });
+  }
+
+  void openColorPicker() {
+    Color tempColor = selectedColor;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Pick Background Color"),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: selectedColor,
+              onColorChanged: (color) {
+                tempColor = color;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  selectedColor = tempColor;
+                  backgroundImage = null;
+                  isTransparent = false;
+                });
+                Navigator.pop(context);
+              },
+              child: const Text("Apply"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> removeBackground() async {
@@ -289,6 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         actionButton(Icons.color_lens, "Blue", () => setBgColor(Colors.lightBlue)),
                         actionButton(Icons.color_lens, "Red", () => setBgColor(Colors.red)),
                         actionButton(Icons.color_lens, "Green", () => setBgColor(Colors.green)),
+                        actionButton(Icons.palette, "Color Picker", openColorPicker),
                         actionButton(Icons.layers_clear, "Transparent", setTransparentBg),
                       ],
                     ),
