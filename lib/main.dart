@@ -82,29 +82,39 @@ class _HomeScreenState extends State<HomeScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text("Pick Background Color"),
-          content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: selectedColor,
-              onColorChanged: (color) {
-                tempColor = color;
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  selectedColor = tempColor;
-                  backgroundImage = null;
-                  isTransparent = false;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("Apply"),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("Pick Background Color"),
+              content: SingleChildScrollView(
+                child: ColorPicker(
+                  pickerColor: tempColor,
+                  onColorChanged: (color) {
+                    setDialogState(() {
+                      tempColor = color;
+                    });
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedColor = tempColor;
+                      backgroundImage = null;
+                      isTransparent = false;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Apply"),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -255,9 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
             Card(
               elevation: 10,
               margin: const EdgeInsets.all(18),
@@ -307,9 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
-
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -325,9 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         actionButton(Icons.layers_clear, "Transparent", setTransparentBg),
                       ],
                     ),
-
                     const SizedBox(height: 18),
-
                     if (selectedImage != null)
                       FilledButton.icon(
                         onPressed: isLoading ? null : removeBackground,
@@ -340,9 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             : const Icon(Icons.auto_fix_high),
                         label: Text(isLoading ? "Processing..." : "Remove Background"),
                       ),
-
                     const SizedBox(height: 12),
-
                     if (removedImageBytes != null)
                       FilledButton.icon(
                         onPressed: downloadImage,
@@ -353,15 +355,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 18),
-
             const Text(
               "How it works: Upload Image → Remove Background → Add BG → Download",
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
-
             const SizedBox(height: 30),
           ],
         ),
