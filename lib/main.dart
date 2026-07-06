@@ -16,7 +16,10 @@ class BGRemoverPro extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'BG Remover Pro',
-      theme: ThemeData(colorSchemeSeed: Colors.deepPurple, useMaterial3: true),
+      theme: ThemeData(
+        colorSchemeSeed: Colors.deepPurple,
+        useMaterial3: true,
+      ),
       home: const HomeScreen(),
     );
   }
@@ -42,7 +45,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> pickImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery);
-
     if (image != null) {
       setState(() {
         selectedImage = image;
@@ -53,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> pickBackgroundImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery);
-
     if (image != null) {
       setState(() {
         backgroundImage = image;
@@ -128,14 +129,14 @@ class _HomeScreenState extends State<HomeScreen> {
     html.Url.revokeObjectUrl(url);
   }
 
-  Widget previewBox() {
+  Widget resultPreview() {
     if (removedImageBytes != null) {
       return Container(
         height: 360,
         width: 360,
         decoration: BoxDecoration(
           color: isTransparent ? Colors.transparent : selectedColor,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(color: Colors.deepPurple.shade100),
           image: backgroundImage == null
               ? null
@@ -144,13 +145,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   fit: BoxFit.cover,
                 ),
         ),
-        child: Image.memory(
-          removedImageBytes!,
-          fit: BoxFit.contain,
-        ),
+        child: Image.memory(removedImageBytes!, fit: BoxFit.contain),
       );
     }
 
+    return emptyBox("Result Preview");
+  }
+
+  Widget originalPreview() {
     if (selectedImage != null) {
       return Image.network(
         selectedImage!.path,
@@ -160,130 +162,175 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
+    return emptyBox("Upload Image");
+  }
+
+  Widget emptyBox(String text) {
     return Container(
-      height: 240,
+      height: 260,
       width: 340,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: Colors.deepPurple.shade100),
       ),
-      child: const Text("No Image Selected"),
+      child: Text(text),
+    );
+  }
+
+  Widget actionButton(IconData icon, String text, VoidCallback onTap) {
+    return FilledButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon),
+      label: Text(text),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xfff7f4ff),
-      appBar: AppBar(
-        title: const Text("BG Remover Pro"),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Card(
-          elevation: 8,
-          margin: const EdgeInsets.all(24),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+      backgroundColor: const Color(0xfff4f1ff),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 38, horizontal: 18),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xff5b2cff), Color(0xff8f5cff)],
+                ),
+              ),
+              child: const Column(
                 children: [
-                  const Icon(Icons.auto_fix_high, size: 60),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "Remove Background Instantly",
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  Icon(Icons.auto_fix_high, color: Colors.white, size: 70),
+                  SizedBox(height: 12),
+                  Text(
+                    "BG Remover Pro",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Remove background, add custom background and download PNG.",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    "Upload photo, remove background, add custom background and download PNG.",
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 18),
-
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: previewBox(),
-                  ),
-
-                  const SizedBox(height: 22),
-
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      FilledButton.icon(
-                        onPressed: pickImage,
-                        icon: const Icon(Icons.upload_file),
-                        label: const Text("Choose Image"),
-                      ),
-                      FilledButton.icon(
-                        onPressed: pickBackgroundImage,
-                        icon: const Icon(Icons.image),
-                        label: const Text("Upload BG"),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => setBgColor(Colors.white),
-                        icon: const Icon(Icons.format_color_fill),
-                        label: const Text("White BG"),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => setBgColor(Colors.lightBlue),
-                        icon: const Icon(Icons.color_lens),
-                        label: const Text("Blue BG"),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => setBgColor(Colors.red),
-                        icon: const Icon(Icons.color_lens),
-                        label: const Text("Red BG"),
-                      ),
-                      FilledButton.icon(
-                        onPressed: () => setBgColor(Colors.green),
-                        icon: const Icon(Icons.color_lens),
-                        label: const Text("Green BG"),
-                      ),
-                      FilledButton.icon(
-                        onPressed: setTransparentBg,
-                        icon: const Icon(Icons.layers_clear),
-                        label: const Text("Transparent"),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  if (selectedImage != null)
-                    FilledButton.icon(
-                      onPressed: isLoading ? null : removeBackground,
-                      icon: isLoading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.auto_fix_high),
-                      label: Text(
-                        isLoading ? "Processing..." : "Remove Background",
-                      ),
-                    ),
-
-                  const SizedBox(height: 12),
-
-                  if (removedImageBytes != null)
-                    FilledButton.icon(
-                      onPressed: downloadImage,
-                      icon: const Icon(Icons.download),
-                      label: const Text("Download PNG"),
-                    ),
                 ],
               ),
             ),
-          ),
+
+            const SizedBox(height: 24),
+
+            Card(
+              elevation: 10,
+              margin: const EdgeInsets.all(18),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(22),
+                child: Column(
+                  children: [
+                    Wrap(
+                      spacing: 18,
+                      runSpacing: 18,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        Column(
+                          children: [
+                            const Text(
+                              "Original",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(22),
+                              child: originalPreview(),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            const Text(
+                              "Result",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(22),
+                              child: resultPreview(),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        actionButton(Icons.upload_file, "Choose Image", pickImage),
+                        actionButton(Icons.image, "Upload BG", pickBackgroundImage),
+                        actionButton(Icons.format_color_fill, "White", () => setBgColor(Colors.white)),
+                        actionButton(Icons.color_lens, "Blue", () => setBgColor(Colors.lightBlue)),
+                        actionButton(Icons.color_lens, "Red", () => setBgColor(Colors.red)),
+                        actionButton(Icons.color_lens, "Green", () => setBgColor(Colors.green)),
+                        actionButton(Icons.layers_clear, "Transparent", setTransparentBg),
+                      ],
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    if (selectedImage != null)
+                      FilledButton.icon(
+                        onPressed: isLoading ? null : removeBackground,
+                        icon: isLoading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.auto_fix_high),
+                        label: Text(isLoading ? "Processing..." : "Remove Background"),
+                      ),
+
+                    const SizedBox(height: 12),
+
+                    if (removedImageBytes != null)
+                      FilledButton.icon(
+                        onPressed: downloadImage,
+                        icon: const Icon(Icons.download),
+                        label: const Text("Download PNG"),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            const Text(
+              "How it works: Upload Image → Remove Background → Add BG → Download",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+
+            const SizedBox(height: 30),
+          ],
         ),
       ),
     );
