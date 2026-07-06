@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Color selectedColor = Colors.white;
   bool isTransparent = false;
   bool isLoading = false;
+  bool showColorPicker = false;
 
   Future<void> pickImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery);
@@ -57,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         backgroundImage = image;
         isTransparent = false;
+        showColorPicker = false;
       });
     }
   }
@@ -66,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedColor = color;
       backgroundImage = null;
       isTransparent = false;
+      showColorPicker = false;
     });
   }
 
@@ -73,51 +76,16 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       backgroundImage = null;
       isTransparent = true;
+      showColorPicker = false;
     });
   }
 
-  void openColorPicker() {
-    Color tempColor = selectedColor;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: const Text("Pick Background Color"),
-              content: SingleChildScrollView(
-                child: ColorPicker(
-                  pickerColor: tempColor,
-                  onColorChanged: (color) {
-                    setDialogState(() {
-                      tempColor = color;
-                    });
-                  },
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
-                ),
-                FilledButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedColor = tempColor;
-                      backgroundImage = null;
-                      isTransparent = false;
-                    });
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Apply"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
+  void toggleColorPicker() {
+    setState(() {
+      showColorPicker = !showColorPicker;
+      backgroundImage = null;
+      isTransparent = false;
+    });
   }
 
   Future<void> removeBackground() async {
@@ -265,7 +233,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
+
             Card(
               elevation: 10,
               margin: const EdgeInsets.all(18),
@@ -315,7 +285,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
+
                     const SizedBox(height: 24),
+
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -327,11 +299,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         actionButton(Icons.color_lens, "Blue", () => setBgColor(Colors.lightBlue)),
                         actionButton(Icons.color_lens, "Red", () => setBgColor(Colors.red)),
                         actionButton(Icons.color_lens, "Green", () => setBgColor(Colors.green)),
-                        actionButton(Icons.palette, "Color Picker", openColorPicker),
+                        actionButton(Icons.palette, "Color Picker", toggleColorPicker),
                         actionButton(Icons.layers_clear, "Transparent", setTransparentBg),
                       ],
                     ),
+
+                    if (showColorPicker) ...[
+                      const SizedBox(height: 18),
+                      const Text(
+                        "Choose Custom Background Color",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      ColorPicker(
+                        pickerColor: selectedColor,
+                        onColorChanged: (color) {
+                          setState(() {
+                            selectedColor = color;
+                            backgroundImage = null;
+                            isTransparent = false;
+                          });
+                        },
+                      ),
+                    ],
+
                     const SizedBox(height: 18),
+
                     if (selectedImage != null)
                       FilledButton.icon(
                         onPressed: isLoading ? null : removeBackground,
@@ -344,7 +337,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             : const Icon(Icons.auto_fix_high),
                         label: Text(isLoading ? "Processing..." : "Remove Background"),
                       ),
+
                     const SizedBox(height: 12),
+
                     if (removedImageBytes != null)
                       FilledButton.icon(
                         onPressed: downloadImage,
@@ -355,12 +350,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 18),
+
             const Text(
               "How it works: Upload Image → Remove Background → Add BG → Download",
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
+
             const SizedBox(height: 30),
           ],
         ),
