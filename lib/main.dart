@@ -24,6 +24,7 @@ class BGRemoverPro extends StatelessWidget {
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -34,11 +35,14 @@ class _HomeScreenState extends State<HomeScreen> {
   XFile? selectedImage;
   XFile? backgroundImage;
   Uint8List? removedImageBytes;
+
   Color selectedColor = Colors.white;
+  bool isTransparent = false;
   bool isLoading = false;
 
   Future<void> pickImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery);
+
     if (image != null) {
       setState(() {
         selectedImage = image;
@@ -49,13 +53,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> pickBackgroundImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery);
+
     if (image != null) {
-      setState(() => backgroundImage = image);
+      setState(() {
+        backgroundImage = image;
+        isTransparent = false;
+      });
     }
+  }
+
+  void setBgColor(Color color) {
+    setState(() {
+      selectedColor = color;
+      backgroundImage = null;
+      isTransparent = false;
+    });
+  }
+
+  void setTransparentBg() {
+    setState(() {
+      backgroundImage = null;
+      isTransparent = true;
+    });
   }
 
   Future<void> removeBackground() async {
     if (selectedImage == null) return;
+
     setState(() => isLoading = true);
 
     try {
@@ -65,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       final imageBytes = await selectedImage!.readAsBytes();
+
       request.files.add(
         http.MultipartFile.fromBytes(
           "image",
@@ -109,8 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 360,
         width: 360,
         decoration: BoxDecoration(
-          color: selectedColor,
+          color: isTransparent ? Colors.transparent : selectedColor,
           borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.deepPurple.shade100),
           image: backgroundImage == null
               ? null
               : DecorationImage(
@@ -134,14 +160,27 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return const Text("No Image Selected");
+    return Container(
+      height: 240,
+      width: 340,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.deepPurple.shade100),
+      ),
+      child: const Text("No Image Selected"),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xfff7f4ff),
-      appBar: AppBar(title: const Text("BG Remover Pro"), centerTitle: true),
+      appBar: AppBar(
+        title: const Text("BG Remover Pro"),
+        centerTitle: true,
+      ),
       body: Center(
         child: Card(
           elevation: 8,
@@ -189,18 +228,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: const Text("Upload BG"),
                       ),
                       FilledButton.icon(
-                        onPressed: () {
-                          setState(() => selectedColor = Colors.white);
-                        },
+                        onPressed: () => setBgColor(Colors.white),
                         icon: const Icon(Icons.format_color_fill),
                         label: const Text("White BG"),
                       ),
                       FilledButton.icon(
-                        onPressed: () {
-                          setState(() => selectedColor = Colors.lightBlue);
-                        },
+                        onPressed: () => setBgColor(Colors.lightBlue),
                         icon: const Icon(Icons.color_lens),
                         label: const Text("Blue BG"),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () => setBgColor(Colors.red),
+                        icon: const Icon(Icons.color_lens),
+                        label: const Text("Red BG"),
+                      ),
+                      FilledButton.icon(
+                        onPressed: () => setBgColor(Colors.green),
+                        icon: const Icon(Icons.color_lens),
+                        label: const Text("Green BG"),
+                      ),
+                      FilledButton.icon(
+                        onPressed: setTransparentBg,
+                        icon: const Icon(Icons.layers_clear),
+                        label: const Text("Transparent"),
                       ),
                     ],
                   ),
