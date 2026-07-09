@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:desktop_drop/desktop_drop.dart';
 
 void main() {
   runApp(const BGRemoverPro());
@@ -41,14 +42,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isTransparent = false;
   bool isLoading = false;
   bool showColorPicker = false;
+  bool isDragging = false;
+
+  void setSelectedImage(XFile image) {
+    setState(() {
+      selectedImage = image;
+      removedImageBytes = null;
+      isDragging = false;
+    });
+  }
 
   Future<void> pickImage() async {
     final image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      setState(() {
-        selectedImage = image;
-        removedImageBytes = null;
-      });
+      setSelectedImage(image);
     }
   }
 
@@ -172,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return emptyBox("Upload Image");
+    return emptyBox(isDragging ? "Drop Image Here" : "Drag & Drop Image Here");
   }
 
   Widget emptyBox(String text) {
@@ -181,11 +188,19 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 340,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDragging ? Colors.deepPurple.shade50 : Colors.white,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: Colors.deepPurple.shade100),
+        border: Border.all(
+          color: isDragging ? Colors.deepPurple : Colors.deepPurple.shade100,
+          width: isDragging ? 2 : 1,
+        ),
       ),
-      child: Text(text),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontWeight: isDragging ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
     );
   }
 
@@ -233,9 +248,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
             Card(
               elevation: 10,
               margin: const EdgeInsets.all(18),
@@ -251,21 +264,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       runSpacing: 18,
                       alignment: WrapAlignment.center,
                       children: [
-                        Column(
-                          children: [
-                            const Text(
-                              "Original",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                        DropTarget(
+                          onDragEntered: (_) {
+                            setState(() => isDragging = true);
+                          },
+                          onDragExited: (_) {
+                            setState(() => isDragging = false);
+                          },
+                          onDragDone: (details) {
+                            if (details.files.isNotEmpty) {
+                              setSelectedImage(details.files.first);
+                            }
+                          },
+                          child: Column(
+                            children: [
+                              const Text(
+                                "Original",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(22),
-                              child: originalPreview(),
-                            ),
-                          ],
+                              const SizedBox(height: 10),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(22),
+                                child: originalPreview(),
+                              ),
+                            ],
+                          ),
                         ),
                         Column(
                           children: [
@@ -285,9 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
-
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -303,7 +327,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         actionButton(Icons.layers_clear, "Transparent", setTransparentBg),
                       ],
                     ),
-
                     if (showColorPicker) ...[
                       const SizedBox(height: 18),
                       const Text(
@@ -322,9 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                       ),
                     ],
-
                     const SizedBox(height: 18),
-
                     if (selectedImage != null)
                       FilledButton.icon(
                         onPressed: isLoading ? null : removeBackground,
@@ -337,9 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             : const Icon(Icons.auto_fix_high),
                         label: Text(isLoading ? "Processing..." : "Remove Background"),
                       ),
-
                     const SizedBox(height: 12),
-
                     if (removedImageBytes != null)
                       FilledButton.icon(
                         onPressed: downloadImage,
@@ -350,15 +369,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 18),
-
             const Text(
-              "How it works: Upload Image → Remove Background → Add BG → Download",
+              "How it works: Drag Image or Upload → Remove Background → Add BG → Download",
               textAlign: TextAlign.center,
               style: TextStyle(fontWeight: FontWeight.w500),
             ),
-
             const SizedBox(height: 30),
           ],
         ),
